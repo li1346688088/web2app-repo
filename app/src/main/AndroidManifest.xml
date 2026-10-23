@@ -17,6 +17,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="__ORIENTATION__"
             android:label="__APP_NAME__">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

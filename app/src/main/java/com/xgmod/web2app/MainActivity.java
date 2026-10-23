@@ -26,6 +26,7 @@ public class MainActivity extends Activity {
     private ProgressBar progressBar;
     private View splash;
     private long splashStart;
+    private long SPLASH_DURATION_MS = __SPLASH_DURATION__ * 1000L;   // 开屏时长（秒，默认3）
     private String HOME_URL = "__URL__";
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -56,10 +57,10 @@ public class MainActivity extends Activity {
                 splashTitle.setVisibility(View.VISIBLE);
             }
             splashStart = System.currentTimeMillis();
-            // 兜底：开屏最多显示 3 秒后自动隐藏
+            // 兜底：开屏最多显示设定时长后自动隐藏
             splash.postDelayed(new Runnable() {
                 @Override public void run() { hideSplash(); }
-            }, 3000);
+            }, SPLASH_DURATION_MS);
         } else {
             splash.setVisibility(View.GONE);
         }
@@ -105,9 +106,9 @@ public class MainActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 progressBar.setVisibility(View.GONE);
-                // 开屏至少显示满 3 秒：若页面完成得早，则延迟到满 3 秒再隐藏
+                // 开屏至少显示满设定时长：若页面完成得早，则延迟到满时长再隐藏
                 if (splash != null && splash.getVisibility() == View.VISIBLE) {
-                    long remain = Math.max(0, 3000 - (System.currentTimeMillis() - splashStart));
+                    long remain = Math.max(0, SPLASH_DURATION_MS - (System.currentTimeMillis() - splashStart));
                     splash.postDelayed(new Runnable() {
                         @Override public void run() { hideSplash(); }
                     }, remain);

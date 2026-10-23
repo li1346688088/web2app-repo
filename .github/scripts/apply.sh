@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 把 workflow_dispatch 传入的参数注入到 Android 壳工程
-# 用法: apply.sh <url> <app_name> <package> <icon_url> <splash_url> <splash_title> <app_version>
+# 用法: apply.sh <url> <app_name> <package> <icon_url> <splash_url> <splash_title> <app_version> <orientation> <splash_duration>
 set -e
 
 URL="$1"
@@ -10,6 +10,8 @@ ICON_URL="$4"
 SPLASH_URL="$5"
 SPLASH_TITLE="$6"
 APP_VERSION="$7"
+ORIENTATION="$8"
+SPLASH_DURATION="$9"
 
 # 转义 sed 替换串里的特殊字符（& \ ），避免网址含 & 时注入出错
 esc_sed() { printf '%s' "$1" | sed 's/[&\\]/\\&/g'; }
@@ -21,6 +23,17 @@ SPLASH_TITLE=$(esc_sed "$SPLASH_TITLE")
 if [ -z "$APP_VERSION" ] || ! echo "$APP_VERSION" | grep -qE '^[0-9]+\.[0-9]+$'; then
   APP_VERSION="1.0"
 fi
+
+# 屏幕方向：portrait / landscape / auto
+case "$ORIENTATION" in
+  portrait|landscape) ;;
+  *) ORIENTATION="unspecified" ;;   # auto 及非法值 → 跟随系统自动旋转
+esac
+
+# 启动画面时长（秒）：默认 3，限制 1-15
+if ! echo "$SPLASH_DURATION" | grep -qE '^[0-9]+$'; then SPLASH_DURATION=3; fi
+if [ "$SPLASH_DURATION" -lt 1 ]; then SPLASH_DURATION=1; fi
+if [ "$SPLASH_DURATION" -gt 15 ]; then SPLASH_DURATION=15; fi
 
 # Android SDK 路径（gradle 读取）
 echo "sdk.dir=$ANDROID_HOME" > local.properties
@@ -38,6 +51,11 @@ sed -i "s#__URL__#$URL#g" "app/src/main/java/$PKG_PATH/MainActivity.java"
 # ---- AndroidManifest.xml ----
 sed -i "s/package=\"com\.xgmod\.web2app\"/package=\"$PACKAGE\"/" app/src/main/AndroidManifest.xml
 sed -i "s/__APP_NAME__/$APP_NAME/g" app/src/main/AndroidManifest.xml
+sed -i "s/__ORIENTATION__/$ORIENTATION/g" app/src/main/AndroidManifest.xml
+
+# ---- 屏幕方向 / 启动时长注入 MainActivity ----
+sed -i "s/__ORIENTATION__/$ORIENTATION/g" "app/src/main/java/$PKG_PATH/MainActivity.java"
+sed -i "s/__SPLASH_DURATION__/$SPLASH_DURATION/g" "app/src/main/java/$PKG_PATH/MainActivity.java"
 
 # ---- app/build.gradle（namespace / applicationId / 版本号）----
 sed -i "s/__PACKAGE__/$PACKAGE/g" app/build.gradle

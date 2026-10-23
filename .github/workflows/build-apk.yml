@@ -32,6 +32,14 @@ on:
         description: 应用版本号（如 1.0 / 1.2，可空则默认 1.0）
         required: false
         default: ''
+      orientation:
+        description: 屏幕方向（portrait 竖屏 / landscape 横屏 / auto 自动）
+        required: false
+        default: auto
+      splash_duration:
+        description: 启动画面时长（秒，1-15，可空则默认 3）
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -60,7 +68,7 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME"
 
       - name: 注入应用参数与图标
-        run: bash .github/scripts/apply.sh "${{ inputs.url }}" "${{ inputs.app_name }}" "${{ inputs.package }}" "${{ inputs.icon_url }}" "${{ inputs.splash_url }}" "${{ inputs.splash_title }}" "${{ inputs.app_version }}"
+        run: bash .github/scripts/apply.sh "${{ inputs.url }}" "${{ inputs.app_name }}" "${{ inputs.package }}" "${{ inputs.icon_url }}" "${{ inputs.splash_url }}" "${{ inputs.splash_title }}" "${{ inputs.app_version }}" "${{ inputs.orientation }}" "${{ inputs.splash_duration }}"
 
       - name: 生成签名证书
         run: |
