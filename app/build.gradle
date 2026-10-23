@@ -1,0 +1,43 @@
+apply plugin: 'com.android.application'
+
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def keystoreProps = new Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProps.load(new FileInputStream(keystorePropertiesFile))
+}
+
+android {
+    namespace '__PACKAGE__'
+    compileSdk 33
+    buildToolsVersion "33.0.2"
+    defaultConfig {
+        applicationId "__PACKAGE__"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "__VERSION_NAME__"
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    signingConfigs {
+        release {
+            storeFile file(keystoreProps['storeFile'])
+            storePassword keystoreProps['storePassword']
+            keyAlias keystoreProps['keyAlias']
+            keyPassword keystoreProps['keyPassword']
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}

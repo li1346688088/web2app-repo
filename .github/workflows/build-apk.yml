@@ -1,0 +1,83 @@
+name: Build APK
+
+# 由宝塔打包站通过 GitHub API 触发（workflow_dispatch），云端编译 APK 并上传产物
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 目标网址
+        required: true
+        default: 'https://example.com'
+      app_name:
+        description: 应用名称
+        required: true
+        default: 'My App'
+      package:
+        description: 安卓包名
+        required: true
+        default: 'com.xgmod.web2app'
+      icon_url:
+        description: 应用图标 URL（PNG，可空则用默认图标）
+        required: false
+        default: ''
+      splash_url:
+        description: 开屏壁纸 URL（PNG，可空则用默认开屏）
+        required: false
+        default: ''
+      splash_title:
+        description: 开屏启动标题（显示在开屏图上的文字，可空则不显示）
+        required: false
+        default: ''
+      app_version:
+        description: 应用版本号（如 1.0 / 1.2，可空则默认 1.0）
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: 安装 Gradle 8.5
+        run: |
+          curl -sLO https://services.gradle.org/distributions/gradle-8.5-bin.zip
+          unzip -q gradle-8.5-bin.zip
+          echo "$PWD/gradle-8.5/bin" >> "$GITHUB_PATH"
+
+      - name: 准备 Android SDK 组件（接受许可 + 安装 33 平台）
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKMANAGER" ] || SDKMANAGER="$ANDROID_HOME/cmdline-tools/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platforms;android-33" "build-tools;33.0.2" > /dev/null 2>&1 || true
+          echo "ANDROID_HOME=$ANDROID_HOME"
+
+      - name: 注入应用参数与图标
+        run: bash .github/scripts/apply.sh "${{ inputs.url }}" "${{ inputs.app_name }}" "${{ inputs.package }}" "${{ inputs.icon_url }}" "${{ inputs.splash_url }}" "${{ inputs.splash_title }}" "${{ inputs.app_version }}"
+
+      - name: 生成签名证书
+        run: |
+          keytool -genkeypair -v -keystore release.keystore -alias web2app -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass web2app2026 -keypass web2app2026 \
+            -dname "CN=web2app, OU=app, O=web2app, L=city, S=province, C=CN" 2>&1
+          printf 'storeFile=%s/release.keystore\nstorePassword=web2app2026\nkeyAlias=web2app\nkeyPassword=web2app2026\n' "$PWD" > keystore.properties
+          cat keystore.properties
+
+      - name: 编译 release APK
+        run: |
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
+          gradle assembleRelease --no-daemon --console=plain
+
+      - name: 上传 APK 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apk
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
