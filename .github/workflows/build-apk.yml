@@ -40,6 +40,10 @@ on:
         description: 启动画面时长（秒，1-15，可空则默认 3）
         required: false
         default: ''
+      splash_enabled:
+        description: 是否启用开屏（1 启用 / 0 关闭，关闭则点击直接进入）
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -68,7 +72,7 @@ jobs:
           echo "ANDROID_HOME=$ANDROID_HOME"
 
       - name: 注入应用参数与图标
-        run: bash .github/scripts/apply.sh "${{ inputs.url }}" "${{ inputs.app_name }}" "${{ inputs.package }}" "${{ inputs.icon_url }}" "${{ inputs.splash_url }}" "${{ inputs.splash_title }}" "${{ inputs.app_version }}" "${{ inputs.orientation }}" "${{ inputs.splash_duration }}"
+        run: bash .github/scripts/apply.sh "${{ inputs.url }}" "${{ inputs.app_name }}" "${{ inputs.package }}" "${{ inputs.icon_url }}" "${{ inputs.splash_url }}" "${{ inputs.splash_title }}" "${{ inputs.app_version }}" "${{ inputs.orientation }}" "${{ inputs.splash_duration }}" "${{ inputs.splash_enabled }}"
 
       - name: 生成签名证书
         run: |

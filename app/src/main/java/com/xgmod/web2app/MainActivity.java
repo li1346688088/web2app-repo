@@ -48,7 +48,8 @@ public class MainActivity extends Activity {
         boolean hasSplash = getResources().getIdentifier("splash", "drawable", getPackageName()) != 0;
         if (hasSplash) {
             ImageView splashImg = findViewById(R.id.splashImg);
-            splashImg.setImageResource(R.drawable.splash);
+            int resId = getResources().getIdentifier("splash", "drawable", getPackageName());
+            if (resId != 0) splashImg.setImageResource(resId);
             splash.setVisibility(View.VISIBLE);
             // 启动标题：非空且非占位符时显示
             TextView splashTitle = findViewById(R.id.splashTitle);
