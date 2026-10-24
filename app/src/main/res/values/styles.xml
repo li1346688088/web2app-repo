@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
-        <!-- 冷启动第一帧直接用开屏图，实现“打开即开屏”，不闪白、不闪图标 -->
-        <item name="android:windowBackground">@drawable/splash</item>
+        <!-- 冷启动窗口背景：用稳定淡紫白，避免引用不存在的开屏资源导致编译失败（开屏图由 MainActivity 动态覆盖） -->
+        <item name="android:windowBackground">#F4F1FB</item>
         <item name="android:statusBarColor">@color/colorPrimaryDark</item>
         <item name="android:colorPrimary">@color/colorPrimary</item>
         <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
